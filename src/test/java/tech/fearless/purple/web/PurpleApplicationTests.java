@@ -1,4 +1,4 @@
-package tech.fearless.purple;
+package tech.fearless.purple.web;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
