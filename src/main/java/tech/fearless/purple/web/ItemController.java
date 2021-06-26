@@ -34,24 +34,32 @@ public class ItemController {
 
   @GetMapping("/items/{id}")
   Item one(@PathVariable Long id) {
-    log.debug("get " + id);
-    return null;
+
+    return repository.findById(id)
+      .orElseThrow(() -> new ItemNotFoundException(id));
   }
 
   @PostMapping("/items")
   Item newItem(@RequestBody Item newItem) {
-    log.debug("post " + newItem.getId());
-    return null;
+    return repository.save(newItem);
   }
 
   @PutMapping("/items/{id}")
   Item replaceItem(@RequestBody Item newItem, @PathVariable Long id) {
-    log.debug("put " + id);
-    return null;
+
+    return repository.findById(id)
+      .map(item -> {
+        item.setName(newItem.getName());
+        return repository.save(item);
+      })
+      .orElseGet(() -> {
+        newItem.setId(id);
+        return repository.save(newItem);
+      });
   }
 
   @DeleteMapping("/items/{id}")
   void deleteItem(@PathVariable Long id) {
-    log.debug("delete " + id);
+    repository.deleteById(id);
   }
 }
