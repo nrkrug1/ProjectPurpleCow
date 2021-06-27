@@ -11,4 +11,4 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan(basePackages = {"tech.fearless.purple.entity"})
 @EnableJpaRepositories(basePackages = {"tech.fearless.purple.repo"})
 @EnableTransactionManagement
-public class RepositoryConfiguration {}
+public class RepositoryConfiguration { }

@@ -12,7 +12,7 @@ public class Item {
   private @Id @GeneratedValue Long id;
   private String name;
 
-  public Item() {}
+  public Item() { }
 
   public Item(String name) {
     this.name = name;

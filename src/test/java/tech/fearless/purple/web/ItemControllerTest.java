@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -38,7 +37,7 @@ public class ItemControllerTest {
 
     @Autowired
     private MockMvc mvc;
-		@Autowired
+    @Autowired
     private ObjectMapper mapper;
 
     @MockBean
@@ -46,33 +45,33 @@ public class ItemControllerTest {
 
     @Autowired
     private JacksonTester<Item> jsonItem;
-		@Autowired
-	  private JacksonTester<List<Item>> jsonItemList;
+    @Autowired
+    private JacksonTester<List<Item>> jsonItemList;
 
-		@Test
+    @Test
     public void getAllItems() throws Exception {
-			List<Item> items = new ArrayList<Item>();
-			items.add(new Item(1L,"Test_1"));
-			items.add(new Item(2L,"Test_2"));
+      List<Item> items = new ArrayList<Item>();
+      items.add(new Item(1L,"Test_1"));
+      items.add(new Item(2L,"Test_2"));
 
-			// given
+      // given
       given(itemRepository.findAll())
       	.willReturn(items);
 
       // when
       MockHttpServletResponse response = mvc.perform(
-	      get("/items")
-	      	.accept(MediaType.APPLICATION_JSON))
-	      	.andReturn().getResponse();
+        get("/items")
+          .accept(MediaType.APPLICATION_JSON))
+          .andReturn().getResponse();
 
-		  // then
+      // then
       assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
       assertThat(response.getContentAsString()).isEqualTo(
-              jsonItemList.write(items).getJson()
+        jsonItemList.write(items).getJson()
       );
     }
 
-		@Test
+    @Test
     public void getItemThatExists() throws Exception {
     	// given
       given(itemRepository.findById(1L))
@@ -80,74 +79,102 @@ public class ItemControllerTest {
 
       // when
       MockHttpServletResponse response = mvc.perform(
-	      get("/items/1")
-	      	.accept(MediaType.APPLICATION_JSON))
-	      	.andReturn().getResponse();
+        get("/items/1")
+          .accept(MediaType.APPLICATION_JSON))
+          .andReturn().getResponse();
 
-		  // then
+      // then
       assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
       assertThat(response.getContentAsString()).isEqualTo(
-              jsonItem.write(new Item(1L,"Test_1")).getJson()
+        jsonItem.write(new Item(1L,"Test_1")).getJson()
       );
     }
 
-		@Test
+    @Test
     public void getItemThatDoesntExist() throws Exception {
-			//Don't mock repo data
-			try{
-				 mvc.perform(get("/items/1")
-						.accept(MediaType.APPLICATION_JSON))
-						.andReturn().getResponse();
-			} catch (Exception e){
-				  assertTrue(e.getMessage().contains("Could not find item"));
-			}
+      //Don't mock repo data
+      try{
+        mvc.perform(get("/items/1")
+          .accept(MediaType.APPLICATION_JSON))
+          .andReturn().getResponse();
+      } catch (Exception e){
+        assertTrue(e.getMessage().contains("Could not find item"));
+      }
     }
 
-		@Test
+    @Test
     public void postNewItem() throws Exception {
-			Item newItem = new Item(1L,"Test_1");
-			// given
-			given(itemRepository.save(newItem)).willReturn(newItem);
+      Item newItem = new Item(1L,"Test_1");
+      // given
+      given(itemRepository.save(newItem)).willReturn(newItem);
 
-			mvc.perform(post("/items")
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.content(this.mapper.writeValueAsString(newItem)))
-				.andExpect(status().isOk());
-		}
+      mvc.perform(post("/items")
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .content(this.mapper.writeValueAsString(newItem)))
+        .andExpect(status().isOk());
+    }
 
-		@Test
+    @Test
+    public void postNewItemBatch() throws Exception {
+      Item newItem1= new Item(1L,"Test_1");
+      Item newItem2 = new Item(1L,"Test_2");
+      List<Item> itemList = new ArrayList<Item>();
+      itemList.add(newItem1);
+      itemList.add(newItem2);
+      // given
+      given(itemRepository.saveAll(itemList)).willReturn(itemList);
+
+      mvc.perform(post("/items/batch")
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .content(this.mapper.writeValueAsString(itemList)))
+        .andExpect(status().isOk());
+    }
+
+    @Test
     public void putItem() throws Exception {
-			Item newItem = new Item(1L,"Test_1");
-			// given
-			// given
+      Item newItem = new Item(1L,"Test_1");
+
+      // given
       given(itemRepository.findById(1L))
-      	.willReturn(Optional.of(newItem));
+        .willReturn(Optional.of(newItem));
 
-			given(itemRepository.save(newItem))
-				.willReturn(newItem);
+      given(itemRepository.save(newItem))
+        .willReturn(newItem);
 
-			MockHttpServletResponse response = mvc.perform(
-				put("/items/1")
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept(MediaType.APPLICATION_JSON)
-					.content(this.mapper.writeValueAsString(newItem)))
-					.andReturn().getResponse();
-
-			assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-      assertThat(response.getContentAsString()).isEqualTo(
-      	jsonItem.write(new Item(1L,"Test_1")).getJson()
-			);
-		}
-
-		@Test
-    public void deleteItem() throws Exception {
-			// when
       MockHttpServletResponse response = mvc.perform(
-	      delete("/items/1")
-	      	.accept(MediaType.APPLICATION_JSON))
-	      	.andReturn().getResponse();
+        put("/items/1")
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON)
+          .content(this.mapper.writeValueAsString(newItem)))
+          .andReturn().getResponse();
 
-			assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-		}
+      assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+      assertThat(response.getContentAsString()).isEqualTo(
+        jsonItem.write(new Item(1L,"Test_1")).getJson()
+      );
+    }
+
+    @Test
+    public void deleteItem() throws Exception {
+      // when
+      MockHttpServletResponse response = mvc.perform(
+        delete("/items/1")
+          .accept(MediaType.APPLICATION_JSON))
+          .andReturn().getResponse();
+
+      assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    public void deleteAll() throws Exception {
+      // when
+      MockHttpServletResponse response = mvc.perform(
+        delete("/items")
+          .accept(MediaType.APPLICATION_JSON))
+          .andReturn().getResponse();
+
+      assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
 }

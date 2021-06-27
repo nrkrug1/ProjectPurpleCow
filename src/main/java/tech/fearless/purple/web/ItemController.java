@@ -1,6 +1,7 @@
 package tech.fearless.purple.web;
 
 import java.util.List;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,6 @@ public class ItemController {
 
   @GetMapping("/items/{id}")
   Item one(@PathVariable Long id) {
-
     return repository.findById(id)
       .orElseThrow(() -> new ItemNotFoundException(id));
   }
@@ -44,9 +44,13 @@ public class ItemController {
     return repository.save(newItem);
   }
 
+  @PostMapping("/items/batch")
+  List<Item> newItem(@RequestBody List<Item> newItems) {
+    return repository.saveAll(newItems);
+  }
+
   @PutMapping("/items/{id}")
   Item replaceItem(@RequestBody Item newItem, @PathVariable Long id) {
-
     return repository.findById(id)
       .map(item -> {
         item.setName(newItem.getName());
@@ -61,5 +65,10 @@ public class ItemController {
   @DeleteMapping("/items/{id}")
   void deleteItem(@PathVariable Long id) {
     repository.deleteById(id);
+  }
+
+  @DeleteMapping("/items")
+  void deleteAll() {
+    repository.deleteAllInBatch();
   }
 }
