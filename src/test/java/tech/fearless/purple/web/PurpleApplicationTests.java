@@ -9,5 +9,4 @@ class PurpleApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }
